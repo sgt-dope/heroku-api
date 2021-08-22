@@ -10,9 +10,9 @@ app = Flask(__name__)
 AUTH_USERNAME = os.environ.get("AUTH_USERNAME")
 AUTH_PASSWORD = os.environ.get("AUTH_PASSWORD")
 
+app.debug = True
 
 data = []
-
 
 
 @app.route("/", methods=["GET"])
@@ -26,17 +26,12 @@ def show_urls():
 @app.route("/add", methods=["POST"])
 def add_url():
     if request.authorization and request.authorization.username == AUTH_USERNAME and request.authorization.password == AUTH_PASSWORD:
-        req_data = request.data
-        fix_bytes = req_data.replace(b"'", b'"')
-        req_data = json.load(io.BytesIO(fix_bytes)) 
-
+        url = request.args.get('url')
         if len(data) == 0:
-            data.append(req_data)
+            data.append({"url":url})
         else:
-            data[0]["urls"]["keycloak_url"] = req_data["urls"]["keycloak_url"]
-            data[0]["urls"]["app_url"] = req_data["urls"]["app_url"]
-
-        return jsonify(data)
+            data[0]["url"] = url
+        return jsonify([{"msg":"Gitpod workspace url has been changed to " + str(url)}])
     return make_response("Access denied!", 401, {'WWW-Authenticate' : 'Basic realm="Login Required"'})
 
 
